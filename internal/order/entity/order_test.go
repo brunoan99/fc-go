@@ -9,7 +9,7 @@ import (
 
 func TestGivenAnEmptyId_WhenCreateANewOrder_ThenShouldReceiveAndError(t *testing.T) {
 	order := entity.Order{}
-	assert.Error(t, order.IsValid(), "invalid price")
+	assert.Error(t, order.IsValid(), "invalid id")
 }
 
 func TestGivenAnEmptyPrice_WhenCreateANewOrder_ThenShouldReceiveAndError(t *testing.T) {
