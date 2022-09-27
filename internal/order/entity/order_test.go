@@ -27,12 +27,19 @@ func TestGivenAnEmptyTax_WhenCreateANewOrder_ThenShouldReceiveAndError(t *testin
 	assert.Error(t, order.IsValid(), "invalid tax")
 }
 
-func TestGivenAnValidParams_WhenCreateANewOrder_ThenShouldRecieveCreateORderWithAllParams(t *testing.T) {
+func TestGivenAValidParams_WhenCreateANewOrder_ThenShouldRecieveCreateORderWithAllParams(t *testing.T) {
 	order, err := entity.NewOrder("123", 10, 2)
 
-	assert.Equal(t, err, nil)
+	assert.NoError(t, err)
 	assert.Equal(t, "123", order.ID)
 	assert.Equal(t, 10.0, order.Price)
 	assert.Equal(t, 2.0, order.Tax)
-	assert.Equal(t, 10.2, order.FinalPrice)
+}
+
+func TestGivenAValidParams_WhenCallCalculateFinalPrice_ThenShouldCalculateFinaPriceAndSetItOnFinalPriceProrperty(t *testing.T) {
+	order, err := entity.NewOrder("123", 10, 2)
+	assert.NoError(t, err)
+	err = order.CalculateFinalPrice()
+	assert.NoError(t, err)
+	assert.Equal(t, 12.0, order.FinalPrice)
 }
