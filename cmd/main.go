@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/brunoan99/fullcycle-go/internal/order/infra/database"
 	usecase "github.com/brunoan99/fullcycle-go/internal/order/use-cases"
@@ -12,6 +13,8 @@ import (
 )
 
 func main() {
+	maxWorkers := 5
+	wg := sync.WaitGroup{}
 	db, err := sql.Open("mysql", "root:root@tcp(mysql:3306)/orders")
 	if err != nil {
 		panic(err)
@@ -26,17 +29,13 @@ func main() {
 	defer ch.Close()
 	out := make(chan amqp.Delivery)
 	go rabbitmq.Consume(ch, out)
-	worker(out, uc, 1)
-	// input := usecase.OrderInputDTO{
-	// 	ID:    "1234",
-	// 	Price: 100.0,
-	// 	Tax:   10.0,
-	// }
-	// output, err := uc.Execute(input)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println(output.FinalPrice)
+
+	wg.Add(maxWorkers)
+	for i := 0; i < maxWorkers; i++ {
+		defer wg.Done()
+		go worker(out, uc, i+1)
+	}
+	wg.Wait()
 }
 
 func worker(develiveryMessage <-chan amqp.Delivery, uc *usecase.CalculateFinalPriceUseCase, workerId int) {
@@ -51,7 +50,7 @@ func worker(develiveryMessage <-chan amqp.Delivery, uc *usecase.CalculateFinalPr
 		if err != nil {
 			fmt.Println("Error processing OrderInputDto", err)
 		}
-		fmt.Println("Recieved Message")
 		msg.Ack(false)
+		fmt.Println("Worker", workerId, "processed order", input.ID)
 	}
 }

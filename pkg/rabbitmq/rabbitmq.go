@@ -8,6 +8,7 @@ func OpenChannel() (*amqp.Channel, error) {
 		panic(err)
 	}
 	ch, err := conn.Channel()
+	ch.Qos(500, 0, false)
 	if err != nil {
 		panic(err)
 	}
